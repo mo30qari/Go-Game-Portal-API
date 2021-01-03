@@ -9,9 +9,10 @@ import (
 )
 
 type User struct {
-	Username string `json:"username" validate:"required,Min=3,Max=20"`
-	Avatar string `json:"avatar" validate:"format=png|jpg|jpeg"`
-	Password string `json:"password" validate:"required,Min=5,Max=255"`
+	Username string `json:"username" validate:"required,string,Min=3,Max=20"`
+	Email string `json:"email" validate:"required,email"`
+	Avatar string `json:"avatar" validate:"file,format=png|jpg|jpeg"`
+	Password string `json:"password" validate:"required,password,Min=5,Max=255"`
 }
 
 //Incomplete
