@@ -16,14 +16,12 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 
-	if params["password"] == params["confirm"] {
-		user := User{
-			Username: params["username"],
-			Password: params["password"],
-		}
+
+	user := User{
+		Username: params["username"],
+		Email: params["email"],
+	}
 
 		validateStruct(user)
-
-	}
 
 }
