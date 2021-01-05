@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -29,12 +30,6 @@ func (s stringValidator) validate(prop interface{}) (bool, error) {
 	return true, nil
 }
 
-type defaultValidator struct {}
-
-func (d defaultValidator) validate(prop interface{}) (bool,error)  {
-	return true, nil
-}
-
 type emailValidator struct{}
 
 func (e emailValidator) validate(prop interface{}) (bool, error) {
@@ -46,37 +41,65 @@ func (e emailValidator) validate(prop interface{}) (bool, error) {
 
 }
 
+type passwordValidator struct {
+	min int
+	max int
+}
+
+func (p passwordValidator) validate(prop interface{}) (bool, error) {
+	a := prop.(string)
+	if len(a) < p.min {
+		return false, errors.New("too short")
+	} else if len(a) > p.max {
+		return false, errors.New("too long")
+	}
+	return true, nil
+}
+
+type defaultValidator struct{}
+
+func (d defaultValidator) validate(prop interface{}) (bool, error) {
+	return true, nil
+}
+
 func getValidator(tags string) Validator {
 	splittedTags := strings.Split(tags, ",")
 
 	switch splittedTags[0] {
+
 	case "string":
 		validator := stringValidator{}
 		fmt.Sscanf(strings.Join(splittedTags[1:], ","), "Min=%d,Max=%d", &validator.min, &validator.max)
 		return validator
+
 	case "email":
 		validator := emailValidator{}
 		return validator
 
+	case "password":
+		validator := passwordValidator{}
+		fmt.Sscanf(strings.Join(splittedTags[1:],","),"Min=%d,Max=%d", &validator.min, &validator.max)
+		return validator
 	}
 
 	return defaultValidator{}
 }
 
-func validateStruct(s interface{}) /*[]error*/ {
+func validateStruct(str interface{}) /*[]error*/ {
 	//errs := []error{}
 
-	props := reflect.ValueOf(s)
+	props := reflect.ValueOf(str)
 	for i := 0; i < props.NumField(); i++ {
 		validator := getValidator(props.Type().Field(i).Tag.Get("validate"))
 		result, err := validator.validate(props.Field(i).Interface())
 
 		if err != nil {
-			fmt.Print(err.Error())
-			//panic("Shit!")
+			errorMessage := props.Type().Field(i).Name + ": " + strconv.FormatBool(result) + " >> " + err.Error()
+			fmt.Println(errorMessage)
+		} else {
+			message := props.Type().Field(i).Name + ": " + "Everything is Good!"
+			fmt.Println(message)
 		}
-
-		fmt.Println(result,"\n")
 
 	}
 

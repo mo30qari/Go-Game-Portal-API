@@ -12,7 +12,7 @@ type User struct {
 	Username string `json:"username" validate:"string,Min=3,Max=9"`
 	Email string `json:"email" validate:"email"`
 	//Avatar string `json:"avatar" validate:"file,format=png|jpg|jpeg"`
-	//Password string `json:"password" validate:"password,Min=5,Max=255"`
+	Password string `json:"password" validate:"password,Min=5,Max=255"`
 }
 
 //Incomplete
@@ -33,11 +33,9 @@ func main(){
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", homePage).Methods("GET")
-	router.HandleFunc("/register/{username}/{email}", register).Methods("POST")
+	router.HandleFunc("/register/{username}/{email}/{password}", register).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
-
-
 
 }
 
@@ -165,7 +163,7 @@ func main(){
 //		fmt.Printf("\t%d. %s\n", i+1, err.Error())
 //	}
 //}
-
+//
 //package main
 //
 //import (
