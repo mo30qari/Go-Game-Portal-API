@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -22,6 +23,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 		Password: params["password"],
 	}
 
-		validateStruct(user)
+	for i, err := range validateStruct(user) {
+		fmt.Printf("%d: %s", i+1, err.Error())
+	}
 
 }

@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
 var mailFormat = regexp.MustCompile(`\A[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z`)
 
 type Validator interface {
-	validate(interface{}) (bool, error)
+	validate(interface{}) (error)
 }
 
 type stringValidator struct {
@@ -20,24 +19,24 @@ type stringValidator struct {
 	max int
 }
 
-func (s stringValidator) validate(prop interface{}) (bool, error) {
+func (s stringValidator) validate(prop interface{}) (error) {
 	a := prop.(string)
 	if len(a) < s.min {
-		return false, errors.New("too short string")
+		return errors.New("too short string")
 	} else if len(a) > s.max {
-		return false, errors.New("too long string")
+		return errors.New("too long string")
 	}
-	return true, nil
+	return nil
 }
 
 type emailValidator struct{}
 
-func (e emailValidator) validate(prop interface{}) (bool, error) {
+func (e emailValidator) validate(prop interface{}) (error) {
 	a := prop.(string)
 	if !mailFormat.MatchString(a) {
-		return false, errors.New("wrong email")
+		return errors.New("wrong email")
 	}
-	return true, nil
+	return nil
 
 }
 
@@ -46,20 +45,20 @@ type passwordValidator struct {
 	max int
 }
 
-func (p passwordValidator) validate(prop interface{}) (bool, error) {
+func (p passwordValidator) validate(prop interface{}) (error) {
 	a := prop.(string)
 	if len(a) < p.min {
-		return false, errors.New("too short")
+		return errors.New("too short")
 	} else if len(a) > p.max {
-		return false, errors.New("too long")
+		return errors.New("too long")
 	}
-	return true, nil
+	return nil
 }
 
 type defaultValidator struct{}
 
-func (d defaultValidator) validate(prop interface{}) (bool, error) {
-	return true, nil
+func (d defaultValidator) validate(prop interface{}) (error) {
+	return nil
 }
 
 func getValidator(tags string) Validator {
@@ -85,22 +84,17 @@ func getValidator(tags string) Validator {
 	return defaultValidator{}
 }
 
-func validateStruct(str interface{}) /*[]error*/ {
-	//errs := []error{}
+func validateStruct(str interface{}) []error {
+	errs := []error{}
 
 	props := reflect.ValueOf(str)
 	for i := 0; i < props.NumField(); i++ {
 		validator := getValidator(props.Type().Field(i).Tag.Get("validate"))
-		result, err := validator.validate(props.Field(i).Interface())
+		err := validator.validate(props.Field(i).Interface())
 
 		if err != nil {
-			errorMessage := props.Type().Field(i).Name + ": " + strconv.FormatBool(result) + " >> " + err.Error()
-			fmt.Println(errorMessage)
-		} else {
-			message := props.Type().Field(i).Name + ": " + "Everything is Good!"
-			fmt.Println(message)
+			errs = append(errs, fmt.Errorf("%s %s", props.Type().Field(i).Name, err.Error()))
 		}
-
 	}
-
+	return errs
 }
