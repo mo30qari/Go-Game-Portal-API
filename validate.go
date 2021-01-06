@@ -88,6 +88,7 @@ func validateStruct(str interface{}) []error {
 	errs := []error{}
 
 	props := reflect.ValueOf(str)
+
 	for i := 0; i < props.NumField(); i++ {
 		validator := getValidator(props.Type().Field(i).Tag.Get("validate"))
 		err := validator.validate(props.Field(i).Interface())
@@ -96,5 +97,6 @@ func validateStruct(str interface{}) []error {
 			errs = append(errs, fmt.Errorf("%s %s", props.Type().Field(i).Name, err.Error()))
 		}
 	}
+
 	return errs
 }
