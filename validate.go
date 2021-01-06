@@ -9,9 +9,10 @@ import (
 )
 
 var mailFormat = regexp.MustCompile(`\A[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z`)
+var stringFormat = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
 type Validator interface {
-	validate(interface{}) (error)
+	validate(interface{}) error
 }
 
 type stringValidator struct {
@@ -19,8 +20,11 @@ type stringValidator struct {
 	max int
 }
 
-func (s stringValidator) validate(prop interface{}) (error) {
+func (s stringValidator) validate(prop interface{}) error {
 	a := prop.(string)
+	if stringFormat.MatchString(a) {
+		return errors.New("wrong string")
+	}
 	if len(a) < s.min {
 		return errors.New("too short string")
 	} else if len(a) > s.max {
@@ -31,7 +35,7 @@ func (s stringValidator) validate(prop interface{}) (error) {
 
 type emailValidator struct{}
 
-func (e emailValidator) validate(prop interface{}) (error) {
+func (e emailValidator) validate(prop interface{}) error {
 	a := prop.(string)
 	if !mailFormat.MatchString(a) {
 		return errors.New("wrong email")
@@ -45,7 +49,7 @@ type passwordValidator struct {
 	max int
 }
 
-func (p passwordValidator) validate(prop interface{}) (error) {
+func (p passwordValidator) validate(prop interface{}) error {
 	a := prop.(string)
 	if len(a) < p.min {
 		return errors.New("too short")
@@ -57,7 +61,7 @@ func (p passwordValidator) validate(prop interface{}) (error) {
 
 type defaultValidator struct{}
 
-func (d defaultValidator) validate(prop interface{}) (error) {
+func (d defaultValidator) validate(prop interface{}) error {
 	return nil
 }
 
@@ -77,7 +81,7 @@ func getValidator(tags string) Validator {
 
 	case "password":
 		validator := passwordValidator{}
-		fmt.Sscanf(strings.Join(splittedTags[1:],","),"Min=%d,Max=%d", &validator.min, &validator.max)
+		fmt.Sscanf(strings.Join(splittedTags[1:], ","), "Min=%d,Max=%d", &validator.min, &validator.max)
 		return validator
 	}
 

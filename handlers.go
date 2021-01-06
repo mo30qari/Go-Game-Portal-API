@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -19,12 +18,17 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	user := User{
 		Username: params["username"],
-		Email: params["email"],
+		Email:    params["email"],
 		Password: params["password"],
 	}
 
-	for i, err := range validateStruct(user) {
-		fmt.Printf("%d: %s", i+1, err.Error())
+	result := validateStruct(user)
+	w.Header().Set("Content-Type", "application/json")
+
+	if len(result) != 0 {
+		json.NewEncoder(w).Encode(result)
+	} else {
+		json.NewEncoder(w).Encode(user)
 	}
 
 }
